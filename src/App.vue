@@ -1,6 +1,8 @@
 <template>
- <el-button type='success'>测试</el-button>
-  
+
+ 
+  <router-view></router-view>
+
 </template>
 
 <script>
