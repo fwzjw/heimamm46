@@ -11,22 +11,22 @@
        </div>
 
                 <!-- form表单 -->
-            <el-form ref="form" :model="loginForm" label-width="43px">
-              <el-form-item >
+            <el-form   ref='loginFor'  :rules="rules" :model="loginForm" label-width="43px">
+              <el-form-item>
                 <el-input v-model="loginForm.shouji"  prefix-icon='el-icon-moon' placeholder='请输入手机号码'></el-input>
               </el-form-item>
-              <el-form-item >
-                <el-input v-model="loginForm.mima"  prefix-icon='el-icon-moon' placeholder='请输入密码'></el-input>
+              <el-form-item  prop="password">
+                <el-input v-model="loginForm.password"  prefix-icon='el-icon-moon' placeholder='请输入密码'></el-input>
               </el-form-item>
-              <el-form-item >
+              <el-form-item prop='loginCode' >
                   <el-row>
                     <el-col :span="17">
-                     <el-input v-model="loginForm.yanzhengma"  prefix-icon='el-icon-moon' placeholder='请输入验证码'></el-input>
+                     <el-input v-model="loginForm.loginCode"  prefix-icon='el-icon-moon' placeholder='请输入验证码'></el-input>
                     </el-col>
                      <el-col :span="7">
                          <img src="../../assets/yanzhengma.png" alt="" style="width:110px; height:42px">
                      </el-col>
-                  </el-row>
+                  </el-row> 
                
               </el-form-item>
  
@@ -44,7 +44,7 @@
         </el-form-item>
 
    <el-form-item>
-    <el-button class="my-btn" type="primary">登陆</el-button>
+    <el-button class="my-btn" type="primary"   @click="submitForm('loginFor')">登陆</el-button>
      
   </el-form-item>
    <el-form-item>
@@ -66,14 +66,35 @@ data() {
      
       loginForm: {
           shouji: '',
-          mima: '',
-          yanzhengma: '',
+          password: '',
+          loginCode: '',
           type:false,
          
         },
-    
+          rules: {
+          password: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min: 8, max: 12, message: '长度在 8 到 12 个字符', trigger: 'blur' }
+          ],
+          loginCode: [
+            { required: true, message: '请输入验证码', trigger: 'blur' },
+            { min: 4, max: 4, message: '长度在4字符', trigger: 'blur' }
+          ],
+          }
     }
 },
+    methods: {
+      submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+         this.$message.success('验证成功');
+          } else {
+             this.$message.error('验证失败');
+            return false;
+          }
+        });
+      },
+    }
 }
 </script>
 
@@ -125,6 +146,7 @@ data() {
  }
  .my-btn{
      width: 100%;
+     margin-top: 10px;
  }
 }
 
