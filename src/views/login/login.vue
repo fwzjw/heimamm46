@@ -25,6 +25,7 @@
                     </el-col>
                      <el-col :span="7">
                          <img src="../../assets/yanzhengma.png" alt="" style="width:110px; height:42px">
+
                      </el-col>
                   </el-row> 
                
@@ -48,9 +49,10 @@
      
   </el-form-item>
    <el-form-item>
-    <el-button   class="my-btn" type="primary">注册</el-button>
+    <el-button   class="my-btn" @click='zhuce' type="primary">注册</el-button>
      
   </el-form-item>
+  <motaikuang ref="motaikuang"></motaikuang>
   
    </el-form>
   </div>
@@ -59,7 +61,11 @@
 </template>
 
 <script>
+import motaikuang from './components/motaikuang'
 export default {
+    components:{
+        motaikuang
+    },
 name:'login',
 data() {
     return {
@@ -84,6 +90,9 @@ data() {
     }
 },
     methods: {
+        zhuce(){
+            this.$refs.motaikuang.dialogFormVisible = true
+        },
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
