@@ -12,18 +12,18 @@
 
                 <!-- form表单 -->
             <el-form   ref='loginFor'  :rules="rules" :model="loginForm" label-width="43px">
-              <el-form-item>
-                <el-input v-model="loginForm.shouji"  prefix-icon='el-icon-moon' placeholder='请输入手机号码'></el-input>
+              <el-form-item prop='phone'>
+                <el-input v-model="loginForm.phone"  prefix-icon='el-icon-moon' placeholder='请输入手机号码'></el-input>
               </el-form-item>
               <el-form-item  prop="password">
                 <el-input v-model="loginForm.password"  prefix-icon='el-icon-moon' placeholder='请输入密码'></el-input>
               </el-form-item>
               <el-form-item prop='loginCode' >
                   <el-row>
-                    <el-col :span="17">
+                    <el-col :span="16">
                      <el-input v-model="loginForm.loginCode"  prefix-icon='el-icon-moon' placeholder='请输入验证码'></el-input>
                     </el-col>
-                     <el-col :span="7">
+                     <el-col :offset='1' :span="7">
                          <img src="../../assets/yanzhengma.png" alt="" style="width:110px; height:42px">
 
                      </el-col>
@@ -61,6 +61,21 @@
 </template>
 
 <script>
+  const checkPhone = (rule,value,callback)=>{
+            // 接收参数 value
+            // 定义正则表达式
+            const reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
+            // 使用正则校验格式是否满足
+            if(reg.test(value)==true){
+                // 对
+                callback()
+            }else{
+                // 错
+                callback(new Error('手机号格式不对哦，请检查'))
+
+            }
+        }
+
 import motaikuang from './components/motaikuang'
 export default {
     components:{
@@ -71,7 +86,7 @@ data() {
     return {
      
       loginForm: {
-          shouji: '',
+          phone: '',
           password: '',
           loginCode: '',
           type:false,
@@ -84,8 +99,12 @@ data() {
           ],
           loginCode: [
             { required: true, message: '请输入验证码', trigger: 'blur' },
-            { min: 4, max: 4, message: '长度在4字符', trigger: 'blur' }
+            { min: 4, max: 4, message: '长度在4字符', trigger: 'change' }
           ],
+          phone:[
+            { required: true, message: '请输入手机号', trigger: 'blur' },
+            { validator:checkPhone, trigger: 'change' }
+          ]
           }
     }
 },
