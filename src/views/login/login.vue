@@ -19,7 +19,7 @@
                 <el-input v-model="loginForm.password"  prefix-icon='el-icon-moon' placeholder='请输入密码'></el-input>
               </el-form-item>
               <el-form-item prop='loginCode' >
-                  <el-row>
+                  <el-row>  
                     <el-col :span="16">
                      <el-input v-model="loginForm.loginCode"  prefix-icon='el-icon-moon' placeholder='请输入验证码'></el-input>
                     </el-col>

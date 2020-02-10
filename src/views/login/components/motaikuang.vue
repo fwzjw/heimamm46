@@ -3,9 +3,15 @@
 
       
    <el-form status-icon  ref="refmtk" :rules='rules' :model="form">
-
- 
-  
+ <el-form-item prop='names' label="头像" :label-width="formLabelWidth">
+  <el-upload class="avatar-uploader" :action="uploadUrl" :show-file-list="false"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" name='image'>
+            <!-- imageUrl有值，显示图片 -->
+            <img v-if="imageUrl" :src="imageUrl" class="avatar">
+            <!-- imageUrl没有值 显示的是i标签 -->
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+  </el-form-item>
     <el-form-item prop='names' label="昵称" :label-width="formLabelWidth">
       <el-input v-model="form.names" autocomplete="off"></el-input>
     </el-form-item>
@@ -22,15 +28,17 @@
         <el-row>
             <el-col :span='16'><el-input v-model="form.iconCode" autocomplete="off"></el-input></el-col>
        
-            <el-col :offset='1' :span='6'><img style="width:100%; height:100%;" src="../../../assets/yanzhengma.png" alt=""></el-col>
+            <el-col :offset='1' :span='6'><img @click="changeCode" style="width:100%; height:100%;" :src="codeURL" alt=""></el-col>
         </el-row>
       
       
       </el-form-item>
       <el-form-item label="验证码" :label-width="formLabelWidth">
-        <el-col :span='16'><el-input v-model="form.name" autocomplete="off"></el-input></el-col>
+        <el-col :span='16'><el-input v-model="form.code" autocomplete="off"></el-input></el-col>
         
-        <el-col :offset='1' :span='7'> <el-button>获取用户验证码</el-button></el-col>
+        <el-col :offset='1' :span='7'> <el-button :disabled='delay != 0' @click="getSms">
+          {{delay == 0 ? '点击获取验证密码': `还有${delay}秒继续获取`}}
+          </el-button></el-col>
       
     </el-form-item>
   
@@ -74,16 +82,23 @@
             }
         };
 
-
+const URLs = process.env.VUE_APP_URL
+//  import axios from 'axios'
+ import {sendsms} from '../../../api/register'
  export default {
+  
     data() {
       return {
-         imageUrl: '',
+        imageUrl:'',
+        codeURL:URLs+"/captcha?type=sendsms",
+        delay:0,
+        uploadUrl:URLs+'/uploads',
        
         dialogFormVisible: false,
         form: {
           names: '',
           iconCode:'',
+          code:'',
           phones:'',
           passwords:'',
           emits:'',
@@ -110,10 +125,70 @@
             
           ],
         },
+        
       };
     },
        methods: {
-    
+
+          handleAvatarSuccess(res, file) {
+                   
+                    // URL.createObjectURL 生成的是本地的临时路径，刷新就没用了
+                    this.imageUrl = URL.createObjectURL(file.raw);
+                },
+                // 上传之前
+                // file 是文件 对象
+                beforeAvatarUpload(file) {
+                   
+                    const isJPG = file.type === 'image/jpeg' || 'image/png';
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+                    if (!isJPG) {
+                        this.$message.error('上传头像图片只能是 JPG 格式!');
+                    }
+                    if (!isLt2M) {
+                        this.$message.error('上传头像图片大小不能超过 2MB!');
+                    }
+                    return isJPG && isLt2M;
+                },
+
+        changeCode(){
+          this.codeURL = URLs+'/captcha?type=sendsms&a='+Date.now();
+        },
+        
+        getSms(){
+           if (this.delay == 0) {
+                    this.delay = 60;
+                    const interId = setInterval(() => {
+                      this.delay--;
+                      if (this.delay == 0) {
+                          clearInterval(interId);
+                      }
+                    },100);
+           }
+                    // axios({
+                    //   url:URLs+'/sendsms',
+                    //   method:'post',
+                    //   data: { 
+                    //     code:this.form.iconCode,
+                    //     phone:this.form.phones, 
+                    //   },
+                    //   // 跨域是否带cokin
+                    //   withCredentials:true,
+                      
+                    // })
+                    sendsms({
+                       code:this.form.iconCode,
+                       phone:this.form.phones,
+                    }).then(res=>{
+                      window.console.log(res);
+                      //成功回调
+                      if (res.data.code == 200) {
+                         this.$message.success('验证码获取成功:'+res.data.data.captcha);
+                        
+                      }else{
+                            this.$message.error(res.data.message);
+                      }
+                    });
+        }
     }
   };
 </script>
@@ -162,5 +237,31 @@
   .el-form-item__label{
       text-align: center
   }
+  .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 178px;
+            height: 178px;
+            line-height: 178px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 178px;
+            height: 178px;
+            display: block;
+        }
  }
 </style>
