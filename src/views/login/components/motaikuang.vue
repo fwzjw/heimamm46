@@ -3,7 +3,7 @@
 
       
    <el-form status-icon  ref="refmtk" :rules='rules' :model="form">
- <el-form-item prop='names' label="头像" :label-width="formLabelWidth">
+ <el-form-item prop='avatar'  label="头像" :label-width="formLabelWidth" >
   <el-upload class="avatar-uploader" :action="uploadUrl" :show-file-list="false"
             :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" name='image'>
             <!-- imageUrl有值，显示图片 -->
@@ -45,46 +45,19 @@
   </el-form>
   <div slot="footer" class="dialog-footer">
     <el-button @click="dialogFormVisible = false">取 消</el-button>
-    <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+    <el-button type="primary" @click="submitForm('refmtk')" >确 定</el-button>
   </div>
-</el-dialog>
+</el-dialog>  
 
 </template>
 
 <script>
-   const checkPhone = (rule,value,callback)=>{
-            // 接收参数 value
-            // 定义正则表达式
-            const reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
-            // 使用正则校验格式是否满足
-            if(reg.test(value)==true){
-                // 对
-                callback()
-            }else{
-                // 错
-                callback(new Error('手机号格式不对哦，请检查'))
-
-            }
-        };
-    
-       const checkEmit = (rule,value,callback)=>{
-            // 接收参数 value
-            // 定义正则表达式
-            const reg = /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/
-            // 使用正则校验格式是否满足
-            if(reg.test(value)==true){
-                // 对
-                callback()
-            }else{
-                // 错
-                callback(new Error('邮箱格式不对哦，请检查'))
-
-            }
-        };
+import {checkPhone,checkEmit} from '@/uitils/validator.js'
+     
 
 const URLs = process.env.VUE_APP_URL
 //  import axios from 'axios'
- import {sendsms} from '../../../api/register'
+ import {sendsms,register} from '../../../api/register'
  export default {
   
     data() {
@@ -102,10 +75,15 @@ const URLs = process.env.VUE_APP_URL
           phones:'',
           passwords:'',
           emits:'',
+          avatar:'',
          
         },
         formLabelWidth: '67px',
         rules:{
+          avatar:[
+            {required: true, message: '头像不能为空',trigger:'blur'},
+            
+          ],
           names:[
             {required: true, message: '用户名不能为空',trigger:'blur'},
             { min: 2, max: 12, message: '长度在 2 到 12 个字符', trigger: 'change' }
@@ -129,17 +107,52 @@ const URLs = process.env.VUE_APP_URL
       };
     },
        methods: {
+  submitForm(formName) {
+    // this.dialogFormVisible = false;
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            register({
+                username:this.form.names,
+                password:this.form.passwords,
+                phone:this.form.phones,
+                email:this.form.emits,
+                
+                avatar:this.form.avatar,
+                rcode:this.form.code,
 
+
+                
+            }).then(res=>{
+              window.console.log(res);
+              if (res.data.code == 200) {
+                this.$message.success('恭喜你,注册成功啦');
+                this.dialogFormVisible = false;
+                this.$refs[formName].resetFields();
+                this. imageUrl='';
+              }else if(res.data.code ==201){
+                this.$message.error(res.data.message)
+              } 
+            })
+         this.$message.success('验证成功');
+
+          } else {
+             this.$message.error('验证失败');
+            return false;
+          }
+        });
+      },
           handleAvatarSuccess(res, file) {
                    
                     // URL.createObjectURL 生成的是本地的临时路径，刷新就没用了
                     this.imageUrl = URL.createObjectURL(file.raw);
+                    this.form.avatar = res.data.file_path;
+                    this.$refs.refmtk.validateField('avatar');
                 },
                 // 上传之前
                 // file 是文件 对象
                 beforeAvatarUpload(file) {
                    
-                    const isJPG = file.type === 'image/jpeg' || 'image/png';
+                    const isJPG = file.type === 'image/jpeg' || 'image/png' ||"image/gif";
                     const isLt2M = file.size / 1024 / 1024 < 2;
                     if (!isJPG) {
                         this.$message.error('上传头像图片只能是 JPG 格式!');

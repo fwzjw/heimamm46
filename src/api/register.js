@@ -9,4 +9,14 @@ export function sendsms(data) {
       withCredentials:true,
       data
     })
-} 
+};
+
+export function register (data) {
+  return axios({
+    url:URLs+'/register',
+    method:'post',
+    withCredentials:true,
+    data
+  })
+
+}

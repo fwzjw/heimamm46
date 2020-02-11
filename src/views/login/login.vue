@@ -24,7 +24,7 @@
                      <el-input v-model="loginForm.loginCode"  prefix-icon='el-icon-moon' placeholder='请输入验证码'></el-input>
                     </el-col>
                      <el-col :offset='1' :span="7">
-                         <img src="../../assets/yanzhengma.png" alt="" style="width:110px; height:42px">
+                         <img :src="codeUrl" alt="" @click="changeimg" style="width:110px; height:42px">
 
                      </el-col>
                   </el-row> 
@@ -60,23 +60,28 @@
 </div> 
 </template>
 
-<script>
-  const checkPhone = (rule,value,callback)=>{
-            // 接收参数 value
-            // 定义正则表达式
-            const reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
-            // 使用正则校验格式是否满足
-            if(reg.test(value)==true){
-                // 对
-                callback()
-            }else{
-                // 错
-                callback(new Error('手机号格式不对哦，请检查'))
 
-            }
-        }
+<script>
+const URLs = process.env.VUE_APP_URL
+import {checkPhone} from '@/uitils/validator.js'
+import {login} from '../../api/login'
+  // const checkPhone = (rule,value,callback)=>{
+  //           // 接收参数 value
+  //           // 定义正则表达式
+  //           const reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
+  //           // 使用正则校验格式是否满足
+  //           if(reg.test(value)==true){
+  //               // 对
+  //               callback()
+  //           }else{
+  //               // 错
+  //               callback(new Error('手机号格式不对哦，请检查'))
+
+  //           }
+  //       }
 
 import motaikuang from './components/motaikuang'
+import {setToken} from '../../uitils/token'
 export default {
     components:{
         motaikuang
@@ -84,7 +89,8 @@ export default {
 name:'login',
 data() {
     return {
-     
+        codeUrl:URLs+'/captcha?type=login&a='+Date.now(),
+
       loginForm: {
           phone: '',
           password: '',
@@ -109,13 +115,39 @@ data() {
     }
 },
     methods: {
+      changeimg(){
+            this.codeUrl = URLs+'/captcha?type=login&a='+Date.now()
+      },  
         zhuce(){
             this.$refs.motaikuang.dialogFormVisible = true
         },
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
-         this.$message.success('验证成功');
+            if (this.loginForm.type == false) {
+              this.$message.error('请同意协议');
+              
+              return
+            }
+
+        //  this.$message.success('验证成功');
+         login({
+           phone:this.loginForm.phone,
+           password:this.loginForm.password,
+           code:this.loginForm.loginCode,
+         }).then(res=>{
+           if (res.data.code == 200) {
+            //  this.$message.success('欢迎你')
+            //  window.localStorage.setItem('heimammToken',res.data.data.token)
+             setToken(res.data.data.token)
+             this.$router.push('/index')
+           }else if(res.data.code == 202){
+               this.$message.error(res.data.message)
+           }
+          window.console.log(res);
+         })
+           
+         
           } else {
              this.$message.error('验证失败');
             return false;
